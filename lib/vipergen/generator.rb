@@ -15,18 +15,41 @@ module Vipergen
 			path_from = Vipergen::FileManager.path_from(template, language)
 			path_to = Vipergen::FileManager.destination_viper_path(path, name)
 			Vipergen::FileManager.copy(path_from, path_to)
+			folders = Vipergen::FileManager.items_in_path(path_to)
+			rename_folders(folders, name)
 			files = Vipergen::FileManager.files_in_path(path_to)
 			rename_files(files,name)
 		end
 
 		# Rename all the files in the files array
-		# - It renames the name of the file 
+		# - It renames the name of the file
+		# - It renames the content of the file
+		def self.rename_folders(items, name)
+			items.reverse.each do |item|
+				if File.directory?(item)
+					if item.include? (Vipergen::Generator::REPLACEMENT_KEY)
+						rename_folder(item, name)
+					end
+				end
+			end
+		end
+
+		# Rename all the files in the files array
+		# - It renames the name of the file
 		# - It renames the content of the file
 		def self.rename_files(files, name)
 			files.each do |file|
 				raise SyntaxError unless file.include? (Vipergen::Generator::REPLACEMENT_KEY)
 				rename_file(file, name)
 			end
+		end
+
+		# Rename a given file
+		# - It renames the name of the file
+		# - It renames the content of the file
+		def self.rename_folder(file, name)
+			new_path = file.gsub((Vipergen::Generator::REPLACEMENT_KEY), name)
+			Vipergen::FileManager.move(file, new_path)
 		end
 
 		# Rename a given file
